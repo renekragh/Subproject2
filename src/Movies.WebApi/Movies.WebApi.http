@@ -1,0 +1,30 @@
+@Movies.WebApi_HostAddress = http://localhost:5193
+
+POST http://localhost:5193/api/users
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "John Doe",
+    "email": "john@doe.com",
+    "userName": "johnd",
+    "password": "dummypw"
+}
+
+###
+
+PUT http://localhost:5193/api/users
+Accept: application/json
+Content-Type: application/json
+
+{
+    "userName": "johnd",
+    "password": "dummypw"
+}
+
+
+###
+
+GET http://localhost:5193/api/titles
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiSm9obiBEb2UiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzYyMzYwODg1fQ.UHPPFfuzkMN9lC-djoT19BSpd1NWaE-GN9W-U3b9wWPK_LFM59dtZ1sEIwDS_hQLmOlFecgSCA5bol90vTtoTA
