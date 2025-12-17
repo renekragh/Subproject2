@@ -1,8 +1,86 @@
-@Movies.WebApi_HostAddress = http://localhost:5193
+@baseUrl = http://localhost:5193/api
+@accept = application/json
+@contentType = application/json
+@nameId_1 = nm13376591 
+@nameId_2 = nm15345067
+@titleId_1 = tt10233662
+@titleId_2 = tt30622352
+@titleId_3 = tt38046860
+@searchId_1 = 8
+@searchId_2 = 5
+@token = {{login.response.body.$.token}}
+@idempotencyKeyStatic_1 = 123e4567-e89b-12d3-a456-426614174000
+@idempotencyKeyStatic_2 = b19ea57a-9bf8-47c0-b076-b4fd4eab0f9f
+@idempotencyKeyStatic_3 = 3f519ce4-bfe1-44c5-a5ea-5786c8f76015
+@idempotencyKeyDynamic = {{$guid}}
+@searchByPrimaryName_1 = Lewington
+@searchByPrimaryName_2 = Schultz
+@searchByName_1 = Chori
+@searchByName_2 = dogs
+@rate = 10
+@updatedRate = 1
+@updatedBookmarkNoteWithValue = "updated bookmark note"
+@updatedBookmarkNoteIsEmpty = ""
 
-POST http://localhost:5193/api/users
-Accept: application/json
-Content-Type: application/json
+
+###################################### Names ###################################################
+
+### Get all names
+GET {{baseUrl}}/names
+Accept: {{accept}}
+Content-Type: {{contentType}}
+
+### Get name by id
+GET {{baseUrl}}/names/{{nameId_1}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+
+### Search names by primary name, one page result
+GET {{baseUrl}}/names/name/{{searchByPrimaryName_1}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+
+### Search names by primary name, nine pages result
+GET {{baseUrl}}/names/name/{{searchByPrimaryName_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+###################################### Titles ###################################################
+
+### Get all titles
+GET {{baseUrl}}/titles
+Accept: {{accept}}
+Content-Type: {{contentType}}
+
+### Get title by id
+GET {{baseUrl}}/titles/{{titleId_1}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+
+### Search titles by name, one page result - no authorization
+GET {{baseUrl}}/titles/name/{{searchByName_1}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+
+### Search titles by name, one page result - authorization
+GET {{baseUrl}}/titles/name/{{searchByName_1}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Search titles by name, two pages result
+GET {{baseUrl}}/titles/name/{{searchByName_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+###################################### User ###################################################
+
+### Create user
+POST {{baseUrl}}/users
+Accept: {{accept}}
+Content-Type: {{contentType}}
 
 {
     "name": "John Doe",
@@ -11,20 +89,198 @@ Content-Type: application/json
     "password": "dummypw"
 }
 
-###
-
-PUT http://localhost:5193/api/users
-Accept: application/json
-Content-Type: application/json
+### User login - JSON response contains JWT token
+# @name login
+PUT {{baseUrl}}/users
+Accept: {{accept}}
+Content-Type: {{contentType}}
 
 {
     "userName": "johnd",
     "password": "dummypw"
 }
 
+###################################### Bookmark names ###################################################
 
-###
+### Bookmark name with a note
+POST {{baseUrl}}/names/{{nameId_1}}/bookmarks
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Idempotency-Key: {{idempotencyKeyStatic_1}}
+Authorization: Bearer {{token}}
 
-GET http://localhost:5193/api/titles
-Accept: application/json
-Authorization: Bearer eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiSm9obiBEb2UiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzYyMzYwODg1fQ.UHPPFfuzkMN9lC-djoT19BSpd1NWaE-GN9W-U3b9wWPK_LFM59dtZ1sEIwDS_hQLmOlFecgSCA5bol90vTtoTA
+"my note for name {{nameId_1}}"
+
+### Bookmark name without a note
+POST {{baseUrl}}/names/{{nameId_2}}/bookmarks
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Idempotency-Key: {{idempotencyKeyStatic_2}}
+Authorization: Bearer {{token}}
+
+### Get all bookmarked names
+GET {{baseUrl}}/bookmark-names
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Get bookmarked name by id
+GET {{baseUrl}}/bookmark-names/{{nameId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Update bookmarked name by id
+PUT {{baseUrl}}/bookmark-names/{{nameId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{{updatedBookmarkNoteWithValue}}
+
+### Update bookmarked name by id
+PUT {{baseUrl}}/bookmark-names/{{nameId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{{updatedBookmarkNoteIsEmpty}}
+
+### Delete bookmarked name by id
+DELETE  {{baseUrl}}/bookmark-names/{{nameId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Delete alle bookmarked names
+DELETE  {{baseUrl}}/bookmark-names
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+####################################### Bookmark titles #################################################
+
+### Bookmark title with a note
+POST {{baseUrl}}/titles/{{titleId_1}}/bookmarks
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Idempotency-Key: {{idempotencyKeyStatic_1}}
+Authorization: Bearer {{token}}
+
+"my note for movie {{titleId_1}}"
+
+### Bookmark title without a note
+POST {{baseUrl}}/titles/{{titleId_2}}/bookmarks
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Idempotency-Key: {{idempotencyKeyStatic_2}}
+Authorization: Bearer {{token}}
+
+### Get all bookmarked titles 
+GET {{baseUrl}}/bookmark-titles
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Get bookmarked title by id
+GET {{baseUrl}}/bookmark-titles/{{titleId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Update bookmarked title by id
+PUT {{baseUrl}}/bookmark-titles/{{titleId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{{updatedBookmarkNoteWithValue}}
+
+### Update bookmarked title by id
+PUT {{baseUrl}}/bookmark-titles/{{titleId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{{updatedBookmarkNoteIsEmpty}}
+
+### Delete bookmarked title by id
+DELETE  {{baseUrl}}/bookmark-titles/{{titleId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Delete alle bookmarked titles
+DELETE  {{baseUrl}}/bookmark-titles
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+####################################### Rate titles #################################################
+
+### Rate title
+POST {{baseUrl}}/titles/{{titleId_3}}/ratings
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Idempotency-Key: {{idempotencyKeyStatic_3}}
+Authorization: Bearer {{token}}
+
+{{rate}}
+
+### Update rate of title
+PUT {{baseUrl}}/titles/{{titleId_3}}/ratings
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{{updatedRate}}
+
+### Delete title rating
+DELETE  {{baseUrl}}/titles/{{titleId_3}}/ratings
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{{rate}}
+
+####################################### Rating history #################################################
+
+### Get rating histories
+GET {{baseUrl}}/ratings-history
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Get rating history
+GET {{baseUrl}}/ratings-history/{{titleId_3}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+####################################### Search history #################################################
+
+### Get all search histories
+GET {{baseUrl}}/search-history
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Get search history
+GET {{baseUrl}}/search-history/{{searchId_1}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Delete search history
+DELETE  {{baseUrl}}/search-history/{{searchId_2}}
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+### Delete all search histories
+DELETE  {{baseUrl}}/search-history
+Accept: {{accept}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+############################################# END ######################################################

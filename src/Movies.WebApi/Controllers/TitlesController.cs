@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Movies.Application.Common.Behaviors;
 using Movies.Application.Common.Interfaces;
-
 
 namespace Movies.WebApi.Controllers;
 
@@ -17,32 +17,29 @@ public class TitlesController : ControllerBase
     }
 
     [HttpGet(Name = nameof(GetTitles))]
-    [Authorize]
-    public IActionResult GetTitles([FromQuery(Name = "name")] string? search, int page = 0, int pageSize = 10)
+    public IActionResult GetTitles([FromQuery] Paging pagingParams)
     {
-        if (search != null) return GetTitlesByName(search, page, pageSize);
-        var titleListModel = _titlesHandler.RetrieveTitles(page, pageSize);
+       pagingParams.EndpointName = nameof(GetTitles);
+        var titleListModel = _titlesHandler.RetrieveTitles(nameof(GetTitle), pagingParams);
         return Ok(titleListModel);
     }
-
+    
     [HttpGet("{id}", Name = nameof(GetTitle))]
     public IActionResult GetTitle(string id)
     {
-        var titleModel = _titlesHandler.RetrieveTitle(id);
+        var titleModel = _titlesHandler.RetrieveTitle(nameof(GetTitle), id);
         if (titleModel == null) return NotFound();
         return Ok(titleModel);
     }
-  
-    
-    [HttpGet("name/{name}", Name = nameof(GetTitlesByPath))]
-    public IActionResult GetTitlesByPath(string name, int page = 0, int pageSize = 25)
-    {
-        return GetTitlesByName(name, page, pageSize);
-    }
 
-    private IActionResult GetTitlesByName(string name, int page = 0, int pageSize = 25)
+    [AllowAnonymous] 
+    [HttpGet("name/{name}", Name = nameof(GetTitlesByName))]
+    public IActionResult GetTitlesByName(string name, [FromQuery] Paging pagingParams)
     {
-        var titleListModel = _titlesHandler.FindTitles(name, page, pageSize);
+        pagingParams.EndpointName = nameof(GetTitlesByName);
+        var titleListModel = _titlesHandler.FindTitles(nameof(GetTitle), name, pagingParams);
+        if (titleListModel == null) return NotFound();
         return Ok(titleListModel);
     }
 }
+

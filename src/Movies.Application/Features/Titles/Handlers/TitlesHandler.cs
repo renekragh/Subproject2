@@ -1,115 +1,104 @@
+using System.Security.Claims;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Movies.Application.Common.Behaviors;
 using Movies.Application.Common.Interfaces;
 using Movies.Application.Features.Titles.Models;
 using Movies.Domain.Entities;
+using Movies.Domain.ValueObjects.SearchResults;
 
 namespace Movies.Application.Features.Titles.Handlers;
 
-public class TitlesHandler : ITitlesHandler
+public class TitlesHandler : BaseHandler, ITitlesHandler
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly LinkGenerator _generator;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IMapper _mapper;
+    private const string GetName = "GetName";
+    private const string TvEpisode = "tvEpisode";
 
-    public TitlesHandler(IUnitOfWork unitOfWork, LinkGenerator generator, IHttpContextAccessor httpContextAccessor, IMapper mapper)
+    public TitlesHandler(IUnitOfWork unitOfWork, 
+                         LinkGenerator generator, 
+                         IHttpContextAccessor httpContextAccessor, 
+                         IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+    public object RetrieveTitles(string endpointName, Paging pagingParams)
     {
-        _unitOfWork = unitOfWork;
-        _generator = generator;
-        _httpContextAccessor = httpContextAccessor;
-        _mapper = mapper;
-    }
-
-    public object RetrieveTitles(int page, int pageSize)
-    {
-        var titles = _unitOfWork.GetRepository<Title>()
-                            .RetrieveEntities(page, pageSize)
-                            .Select(x => CreateTitleListModel(x));
+        var titles = _unitOfWork
+                        .GetRepository<Title>()
+                        .RetrieveEntities(pagingParams.Page, pagingParams.PageSize)
+                        .Select(x => CreateTitleListModel(endpointName, x));
                             
-        // .OrderBy(x => x.Primarytitle);
+        var numOfItems = _unitOfWork
+                            .GetRepository<Title>()
+                            .GetEntityCount(predicate: null);
 
-        var numOfItems = _unitOfWork.GetRepository<Title>()
-                            .GetEntityCount();
-
-        return CreatePaging(titles, numOfItems, page, pageSize);
+        return CreatePaging(searchQuery: null, titles, numOfItems, pagingParams);
     }
     
-    public TitleModel? RetrieveTitle(string id)
-        {
-            var title = _unitOfWork.GetRepository<Title>().FindEntity(id);
-            if (title != null) return CreateTitleModel(title);
-            return null;
-        }
-
-    public object FindTitles(string name, int page, int pageSize)
+    public object RetrieveTitle(string endpointName, string id)
     {
-        var titles = _unitOfWork.GetRepository<Title>()
-                            .FindEntities(x => x.Primarytitle
-                            !.Contains(name), page, pageSize)
-                            .Select(CreateTitleListModel);
-        //.OrderBy(x => x.Primarytitle);
+        var title = _unitOfWork
+                        .TitlesRepository
+                        .GetTitleWithRelatedEntities(id);
 
+        if (title == null) return null;
+        var titleModel = CreateTitleModel(endpointName, title);
+        return CreateLinks(endpointName, new { id = title.Tconst }, titleModel);
+    }
+
+    public object FindTitles(string endpointName, string query, Paging pagingParams)
+    {
+        Claim nameIdentifier = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+
+        int userId = -1;
+        if (nameIdentifier != null) _ = int.TryParse(nameIdentifier.Value, out userId);
+
+//Use stored psql function string_search(...) through EF
+        var titles = _unitOfWork
+                        .TitlesRepository
+                        .GetTitleSearchResults(query, userId).AsEnumerable()
+                        .Select(x => CreateTitleSearchResultModel(endpointName, x));
+        
         var numOfItems = _unitOfWork.GetRepository<Title>()
-                            .GetEntityCount();
+                            .GetEntityCount(x => x.Primarytitle.Contains(query));
                             
-        return CreatePaging(titles, numOfItems, page, pageSize);
+        if (numOfItems == 0) return null;    
+        if (numOfItems <= pagingParams.PageSize) return new { NumberOfPages = 0, NumberOfIems = numOfItems, Items = titles };                
+        return CreatePaging(query, titles, numOfItems, pagingParams);
     }
 
-    private TitleModel CreateTitleModel(Title title)
+    private TitleListModel CreateTitleListModel(string endpointName, Title entity)
     {
-        var titleModel = _mapper.Map<TitleModel>(title);
-        titleModel.Url = GetUrl(new { id = title.Tconst });
-        return titleModel;
-    }
-
-    private TitleListModel CreateTitleListModel(Title title)
-    {
-        var titleListModel = _mapper.Map<TitleListModel>(title);
-        titleListModel.Url = GetUrl(new { tconst = title.Tconst });
+        var titleListModel = _mapper.Map<TitleListModel>(entity);
+        titleListModel.Url = GetUrl(endpointName, new { id = entity.Tconst });
         return titleListModel;
     }
 
-    private object CreatePaging<TEntity>(IEnumerable<TEntity> items, int numberOfItems, int page, int pageSize)
+    private TitleModel CreateTitleModel(string endpointName, Title entity)
     {
-        var numberOfPages = (int)Math.Ceiling((double)numberOfItems / pageSize);
+        TypeAdapterConfig<Title, TitleModel>
+            .NewConfig()
+            .Map(dest => dest.Genres, src => src.TitleGenres)
+            .Map(dest => dest.Localizeds, src => src.Localizeds)
+            .Map(dest => dest.Ratings, src => src.Ratings)
+            .Map(dest => dest.Principals, src => src.Principals)
+            .IgnoreIf((src, dest) => !src.Titletype.Equals(TvEpisode), dest => dest.Episode);
+            
+        var titleModel = _mapper.Map<TitleModel>(entity); 
 
-        var prev = page > 0
-            ? GetUrl(new { page = page - 1, pageSize })
-            : null;
+        titleModel.Url = GetUrl(endpointName, new { id = entity.Tconst });
+        if (entity.Titletype.Equals(TvEpisode)) titleModel.Episode = GetUrl(endpointName, new { id = entity.Tconst });
 
-        var next = page < numberOfPages - 1
-            ? GetUrl(new { page = page + 1, pageSize })
-            : null;
-
-        var first = GetUrl(new { page = 0, pageSize });
-        var cur = GetUrl(new { page, pageSize });
-        var last = GetUrl(new { page = numberOfPages - 1, pageSize });
-
-        return new
+        foreach (var (index, item) in titleModel.Principals.Index()) 
         {
-            First = first,
-            Prev = prev,
-            Next = next,
-            Last = last,
-            Current = cur,
-            NumberOfPages = numberOfPages,
-            NumberOfIems = numberOfItems,
-            Items = items
-        };
+            item.Url = GetUrl(GetName, new { id = entity.Principals.Select(x => x.Nconst).ElementAt(index)});
+        }
+        return titleModel;
     }
- 
-    private string? GetUrl(object values)
+
+        private TitleSearchResultModel CreateTitleSearchResultModel(string endpointName, TitleSearchResults searchResults)
     {
-        var endpointName = _httpContextAccessor
-                            ?.HttpContext
-                            ?.GetEndpoint()
-                            ?.Metadata
-                            ?.GetMetadata<EndpointNameMetadata>()
-                            ?.EndpointName;
-        if (_httpContextAccessor?.HttpContext == null || endpointName == null) return null;
-        var url = _generator.GetUriByName(_httpContextAccessor.HttpContext, endpointName, values);
-        return url;
+        var titleSearchResultModel = _mapper.Map<TitleSearchResultModel>(searchResults);
+        titleSearchResultModel.Url = GetUrl(endpointName, new { id = searchResults.Tconst });
+        return titleSearchResultModel;
     }
 }

@@ -10,12 +10,18 @@ public class UnitOfWork : IUnitOfWork
     private PostgresDbContext _dbContext;
     private readonly Dictionary<Type, object> _repositories;
     private bool disposed = false;
+    public INamesRepository NamesRepository { get; }
+    public ITitlesRepository TitlesRepository { get; }
+    public IUsersRepository UsersRepository { get; }
 
 
-    public UnitOfWork(PostgresDbContext dbContext)
+    public UnitOfWork(PostgresDbContext dbContext, INamesRepository namesRepository, ITitlesRepository titlesRepository, IUsersRepository usersRepository)
     {
         _dbContext = dbContext;
         _repositories = new Dictionary<Type, object>();
+        NamesRepository = namesRepository;
+        TitlesRepository = titlesRepository;
+        UsersRepository = usersRepository;
     }
 
     public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : class

@@ -1,10 +1,10 @@
-using Movies.Application.Features.Titles.Models;
+using Movies.Application.Common.Behaviors;
 
 namespace Movies.Application.Common.Interfaces;
 
 public interface ITitlesHandler
 {
-    object RetrieveTitles(int page, int pageSize);
-    TitleModel? RetrieveTitle(string id);
-    object FindTitles(string name, int page, int pageSize);
+    object RetrieveTitles(string endpointName, Paging pagingParams);
+    object RetrieveTitle(string endpointName, string id);
+    object FindTitles(string endpointName, string name, Paging pagingParams);
 }

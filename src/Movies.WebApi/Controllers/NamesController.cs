@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Movies.Application.Common.Behaviors;
 using Movies.Application.Common.Interfaces;
-using Movies.Domain.Entities;
 
 namespace Movies.WebApi.Controllers;
 
@@ -8,41 +8,36 @@ namespace Movies.WebApi.Controllers;
 [ApiController]
 public class NamesController : ControllerBase
 {
-    private readonly IUnitOfWork _unitOfWork;
-    public NamesController(IUnitOfWork unitOfWork)
+    private readonly INamesHandler _namesHandler;
+
+    public NamesController(INamesHandler namesHandler)
     {
-        _unitOfWork = unitOfWork;
+        _namesHandler = namesHandler;
     }
-/*
-    [HttpGet]
-    public IActionResult GetNames([FromQuery] string? name)
+
+    [HttpGet(Name = nameof(GetNames))]
+    public IActionResult GetNames([FromQuery] Paging pagingParams)
     {
-        if (name != null) return GetNamesByName(name);
-        var names = _unitOfWork.GetRepository<Name>().RetrieveEntities();
-        return Ok(names);
+        pagingParams.EndpointName = nameof(GetNames);
+        var nameListModel = _namesHandler.GetNames(nameof(GetName), pagingParams);
+        return Ok(nameListModel);
     }
-*/
-    [HttpGet("{id}")]
+    
+    [HttpGet("{id}", Name = nameof(GetName))]
     public IActionResult GetName(string id)
     {
-        var name = _unitOfWork.GetRepository<Name>().FindEntity(id);
-        if (name == null) return NotFound();
-        // var model = CreateCategoryModel(category);
-        return Ok(name);
+        var nameModel = _namesHandler.GetName(nameof(GetName), id);
+        if (nameModel == null) return NotFound();
+        return Ok(nameModel);
     }
- /*
-    [HttpGet("name/{name}")]
-    public IActionResult GetNamesByPath(string name)
+ 
+    [HttpGet("name/{name}", Name = nameof(FindNamesByName))]
+    public IActionResult FindNamesByName(string name, [FromQuery] Paging pagingParams)
     {
-        return GetNamesByName(name);
+        pagingParams.EndpointName = nameof(FindNamesByName);
+        var nameListModel = _namesHandler.FindNames(nameof(GetName), name, pagingParams);
+        if (nameListModel == null) return NotFound();
+        return Ok(nameListModel);
     }
-   
-    private IActionResult GetNamesByName(string name)
-    {
-        var results = _unitOfWork.GetRepository<Name>().FindEntities(x => x.Primaryname!.Contains(name));
-        if (results.Any()) return Ok(results);
-        return NotFound(results);
-    }
-    */
 }
 

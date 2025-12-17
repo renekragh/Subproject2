@@ -1,23 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Movies.Domain.Entities;
+using Movies.Domain.ValueObjects.SearchResults;
+using Movies.Infrastructure.Functions.ScalarFunctions;
 
 namespace Movies.Infrastructure.DataContext;
 
 public partial class PostgresDbContext : DbContext
 {
-//    private readonly string? _connectionString;
-
-/*
-    public PostgresDbContext(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
-*/
-    public PostgresDbContext( DbContextOptions<PostgresDbContext> options) : base(options)
-    {
-    }
-
+    public PostgresDbContext( DbContextOptions<PostgresDbContext> options) : base(options) {}
 
     public DbSet<ImdbUser> ImdbUsers { get; set; }
     public DbSet<Localized> Localizeds { get; set; }
@@ -32,6 +22,7 @@ public partial class PostgresDbContext : DbContext
     public DbSet<Title> Titles { get; set; }
     public DbSet<UserBookmarkName> UserBookmarkNames { get; set; }
     public DbSet<UserBookmarkTitle> UserBookmarkTitles { get; set; }
+    public DbSet<Idempotency> Idempotencies { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -225,6 +216,7 @@ public partial class PostgresDbContext : DbContext
                 .HasForeignKey(d => d.Tconst)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("rating_tconst_fkey");
+
         });
 
         modelBuilder.Entity<RatingHistory>(entity =>
@@ -312,6 +304,7 @@ public partial class PostgresDbContext : DbContext
                 .HasForeignKey(d => d.Episode)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("title_episode_fkey");
+
         });
 
         modelBuilder.Entity<TitleGenre>(entity =>
@@ -398,8 +391,49 @@ public partial class PostgresDbContext : DbContext
             entity.Property(e => e.Lexeme).HasColumnName("lexeme");
         });
 
+        modelBuilder.Entity<Idempotency>(entity =>
+        {
+            entity.HasKey(e => new { e.Key }).HasName("key_pkey");
+            entity.ToTable("idempotency_keys");
+            entity.Property(e => e.Key)
+                .HasColumnName("key");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("createdat");
+        });
+      
+        modelBuilder.Entity<TitleSearchResults>(entity =>
+        {
+            entity.HasNoKey();
+            entity.Property(e => e.Tconst)
+                .HasColumnName("tconst");
+            entity.Property(e => e.Primarytitle)
+                .HasColumnName("primarytitle");
+            entity.ToView(null);  // no table, else error: column s.Primarytitle does not exist
+        });
+
+        modelBuilder.HasDbFunction(() => GetTitleSearchResults(default, default))
+            .HasName("string_search");
+
+        modelBuilder
+            .HasDbFunction(typeof(CreateTitleRatingFunction)
+            .GetMethod(nameof(CreateTitleRatingFunction.IsTitleRated), [typeof(string), typeof(int), typeof(int)]))
+            .HasName("rate");
+        
+        modelBuilder
+            .HasDbFunction(typeof(UpdateTitleRatingFunction)
+            .GetMethod(nameof(UpdateTitleRatingFunction.IsTitleRatingUpdated), [typeof(string), typeof(int), typeof(int), typeof(int)]))
+            .HasName("update_rate");
+        
+        modelBuilder
+            .HasDbFunction(typeof(DeleteTitleRatingFunction)
+            .GetMethod(nameof(DeleteTitleRatingFunction.IsTitleRatingDeleted), [typeof(string), typeof(int), typeof(int)]))
+            .HasName("delete_rate");
+
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    public IQueryable<TitleSearchResults> GetTitleSearchResults(string searchQuery, int userId) =>
+    FromExpression(() => GetTitleSearchResults(searchQuery, userId));
 }

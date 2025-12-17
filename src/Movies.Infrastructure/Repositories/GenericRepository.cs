@@ -7,10 +7,12 @@ namespace Movies.Infrastructure.Repositories;
 
 public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
 {
-    private readonly DbSet<TEntity> _dbSet;
-
+    protected readonly PostgresDbContext _context;
+    protected readonly DbSet<TEntity> _dbSet;
+  
     public GenericRepository(PostgresDbContext context)
     {
+        _context = context;
         _dbSet = context.Set<TEntity>();
     }
 
@@ -24,6 +26,11 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
         _dbSet.Remove(entity);
     }
 
+    public void DeleteEntities(IEnumerable<TEntity> entities)
+    {
+        _dbSet.RemoveRange(entities);
+    }
+
     public IEnumerable<TEntity> RetrieveEntities(int page, int pageSize)
     {
         return _dbSet
@@ -33,12 +40,12 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     }
 
 
-    public TEntity? FindEntity(object id)
+    public TEntity FindEntity(object id)
     {
         return _dbSet.Find(id);
     }
 
-    public TEntity? RetrieveEntity(Expression<Func<TEntity, bool>> predicate)
+    public TEntity RetrieveEntity(Expression<Func<TEntity, bool>> predicate)
     {
         return _dbSet
                 .Where(predicate).FirstOrDefault();
@@ -48,6 +55,7 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     {
         _dbSet.Update(entity);
        // _dbSet.Entry(entity).State = EntityState.Modified;
+
     }
 
     public IEnumerable<TEntity> FindEntities(Expression<Func<TEntity, bool>> predicate, int page, int pageSize)
@@ -59,8 +67,11 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
        // .ToList();
     }
 
-    public int GetEntityCount()
+    public int GetEntityCount(Expression<Func<TEntity, bool>> predicate)
     {
-        return _dbSet.Count();
+        if (predicate is null) return _dbSet.Count();
+        return _dbSet
+        .Where(predicate)
+        .Count();
     }
 }
