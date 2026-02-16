@@ -241,7 +241,7 @@ Accept: {{accept}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
-{{rate}}
+//{{rate}}
 
 ####################################### Rating history #################################################
 

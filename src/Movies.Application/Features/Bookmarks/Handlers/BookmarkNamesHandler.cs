@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,10 @@ namespace Movies.Application.Features.Bookmarks.Handlers;
 public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
 {
     public BookmarkNamesHandler(IUnitOfWork unitOfWork, 
-                                 LinkGenerator generator, 
-                                 IHttpContextAccessor httpContextAccessor, 
-                                 IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
-
+                                LinkGenerator generator, 
+                                IHttpContextAccessor httpContextAccessor, 
+                                IMapper mapper) : base (unitOfWork, generator, httpContextAccessor, mapper) {}
+                                
     public ObjectResult BookmarkName(string id, string key, string note, string endpointName)
     {
         if (int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value, out int userId))
@@ -210,7 +211,12 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
 
     private BookmarkNameModel CreateBookmarkNameModel(string endpointName, UserBookmarkName entity)
     {
+        TypeAdapterConfig<UserBookmarkName, BookmarkNameModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Nconst);
+            
         var model = _mapper.Map<BookmarkNameModel>(entity);
+
         model.Url = GetUrl(endpointName, new { id = entity.Nconst });
         return model;
     }

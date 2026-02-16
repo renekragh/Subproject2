@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
 using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Routing;
 using Movies.Application.Common.Behaviors;
 using Movies.Application.Common.Interfaces;
@@ -20,13 +22,17 @@ public class TitlesHandler : BaseHandler, ITitlesHandler
                          LinkGenerator generator, 
                          IHttpContextAccessor httpContextAccessor, 
                          IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+
+
     public object RetrieveTitles(string endpointName, Paging pagingParams)
     {
         var titles = _unitOfWork
-                        .GetRepository<Title>()
-                        .RetrieveEntities(pagingParams.Page, pagingParams.PageSize)
+                        //.GetRepository<Title>()
+                        //.RetrieveEntities(pagingParams.Page, pagingParams.PageSize)
+                        .TitlesRepository
+                        .GetTitlesWithRating(pagingParams.Page, pagingParams.PageSize)
                         .Select(x => CreateTitleListModel(endpointName, x));
-                            
+
         var numOfItems = _unitOfWork
                             .GetRepository<Title>()
                             .GetEntityCount(predicate: null);
@@ -57,7 +63,7 @@ public class TitlesHandler : BaseHandler, ITitlesHandler
                         .TitlesRepository
                         .GetTitleSearchResults(query, userId).AsEnumerable()
                         .Select(x => CreateTitleSearchResultModel(endpointName, x));
-        
+
         var numOfItems = _unitOfWork.GetRepository<Title>()
                             .GetEntityCount(x => x.Primarytitle.Contains(query));
                             
@@ -68,6 +74,11 @@ public class TitlesHandler : BaseHandler, ITitlesHandler
 
     private TitleListModel CreateTitleListModel(string endpointName, Title entity)
     {
+        TypeAdapterConfig<Title, TitleListModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Tconst)
+            .Map(dest => dest.Ratings, src => src.Ratings);
+           
         var titleListModel = _mapper.Map<TitleListModel>(entity);
         titleListModel.Url = GetUrl(endpointName, new { id = entity.Tconst });
         return titleListModel;
@@ -77,6 +88,7 @@ public class TitlesHandler : BaseHandler, ITitlesHandler
     {
         TypeAdapterConfig<Title, TitleModel>
             .NewConfig()
+            .Map(dest => dest.Id, src => src.Tconst)
             .Map(dest => dest.Genres, src => src.TitleGenres)
             .Map(dest => dest.Localizeds, src => src.Localizeds)
             .Map(dest => dest.Ratings, src => src.Ratings)
@@ -97,6 +109,10 @@ public class TitlesHandler : BaseHandler, ITitlesHandler
 
         private TitleSearchResultModel CreateTitleSearchResultModel(string endpointName, TitleSearchResults searchResults)
     {
+        TypeAdapterConfig<TitleSearchResults, TitleSearchResultModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Tconst);
+          
         var titleSearchResultModel = _mapper.Map<TitleSearchResultModel>(searchResults);
         titleSearchResultModel.Url = GetUrl(endpointName, new { id = searchResults.Tconst });
         return titleSearchResultModel;

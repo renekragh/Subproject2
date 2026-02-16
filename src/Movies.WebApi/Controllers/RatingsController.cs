@@ -36,4 +36,3 @@ public class RatingsController : ControllerBase
         return _ratingsHandler.DeleteRating(id, nameof(GetRating));
     }
 }
-

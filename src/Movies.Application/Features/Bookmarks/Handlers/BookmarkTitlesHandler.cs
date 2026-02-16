@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
                                  LinkGenerator generator, 
                                  IHttpContextAccessor httpContextAccessor, 
                                  IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+                                 
     public ObjectResult BookmarkTitle(string id, string key, string note, string endpointName)
     {
         if (int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value, out int userId))
@@ -31,7 +33,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
                                         .UsersRepository
                                         .GetUserWithTitleBookmarks(userId)
                                         .UserBookmarkTitles
-                                        .FirstOrDefault(x => x.Tconst == id);
+                                        .FirstOrDefault(x => x.Tconst.Trim() == id);
                                       
                 var badRequest = new ObjectResult(new 
                                                     { 
@@ -55,7 +57,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
             if (_unitOfWork.Save()) {
                 var newEntity = _unitOfWork
                                     .GetRepository<UserBookmarkTitle>()
-                                    .RetrieveEntity(x => x.Tconst == id);
+                                    .RetrieveEntity(x => x.Tconst.Trim() == id);
                 var created = new ObjectResult(new { endpointName, item = CreateBookmarkTitleModel(endpointName, newEntity) });
                 created.StatusCode = 201;
                 return created;
@@ -93,7 +95,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
                                  .UsersRepository
                                  .GetUserWithTitleBookmarks(userId)
                                  .UserBookmarkTitles
-                                 .FirstOrDefault(x => x.Tconst == titleId);
+                                 .FirstOrDefault(x => x.Tconst.Trim() == titleId);
 
             if (titleBookmark == null) return null;
             var titleBookmarkModel = CreateBookmarkTitleModel(endpointName, titleBookmark);
@@ -111,7 +113,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
                         .GetUserWithTitleBookmarks(userId);
             user
                 .UserBookmarkTitles
-                .FirstOrDefault(x => x.Tconst == titleId)
+                .FirstOrDefault(x => x.Tconst.Trim() == titleId)
                 .Note = note;               
 
             _unitOfWork
@@ -124,7 +126,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
                                                 .UsersRepository
                                                 .GetUserWithTitleBookmarks(userId)
                                                 .UserBookmarkTitles
-                                                .FirstOrDefault(x => x.Tconst == titleId);
+                                                .FirstOrDefault(x => x.Tconst.Trim() == titleId);
 
                 var updated = new ObjectResult(new { endpointName, item = CreateBookmarkTitleModel(endpointName, updatedBookmarkedTitle) });
                 updated.StatusCode = 200;
@@ -146,7 +148,7 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
 
             var bookmarkedTitleByUser = user
                                         .UserBookmarkTitles
-                                        .FirstOrDefault(x => x.Tconst == titleId);
+                                        .FirstOrDefault(x => x.Tconst.Trim() == titleId);
 
             if (bookmarkedTitleByUser != null)
             {
@@ -209,6 +211,10 @@ public class BookmarkTitlesHandler : BaseHandler, IBookmarkTitlesHandler
 
     private BookmarkTitleModel CreateBookmarkTitleModel(string endpointName, UserBookmarkTitle entity)
     {
+        TypeAdapterConfig<UserBookmarkTitle, BookmarkTitleModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Tconst);
+
         var model = _mapper.Map<BookmarkTitleModel>(entity);
         model.Url = GetUrl(endpointName, new { id = entity.Tconst });
         return model;

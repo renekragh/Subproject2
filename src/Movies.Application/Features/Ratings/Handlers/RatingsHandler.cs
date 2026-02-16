@@ -11,11 +11,12 @@ using Movies.Domain.Entities;
 namespace Movies.Application.Features.Ratings.Handlers;
 
 public class RatingsHandler : BaseHandler, IRatingsHandler
-{
+{    
     public RatingsHandler(IUnitOfWork unitOfWork, 
                           LinkGenerator generator, 
                           IHttpContextAccessor httpContextAccessor, 
                           IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+
     public ObjectResult RateTitle(string titleId, string key, int rate, string endpointName)
     {
         if (int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value, out int userId))

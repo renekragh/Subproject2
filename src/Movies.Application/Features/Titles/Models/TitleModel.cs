@@ -6,6 +6,8 @@ public class TitleModel
 {
     public ICollection<Link> Links { get; set; } = new List<Link>();
     
+    public string Id { get; set; } 
+    
     public string Url { get; set; }
 
     public string Titletype { get; set; }

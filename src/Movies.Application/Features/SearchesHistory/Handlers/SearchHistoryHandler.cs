@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,12 @@ namespace Movies.Application.Features.SearchesHistory.Handlers;
 
 public class SearchHistoryHandler : BaseHandler, ISearchHistoryHandler
 {
+   
     public SearchHistoryHandler(IUnitOfWork unitOfWork, 
                                  LinkGenerator generator, 
                                  IHttpContextAccessor httpContextAccessor, 
                                  IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+                                
 
     public object GetAllSearchHistory(string endpointName, Paging pagingParams)
     {
@@ -138,6 +141,10 @@ public class SearchHistoryHandler : BaseHandler, ISearchHistoryHandler
 
     private SearchHistoryModel CreateSearchHistoryModel(string endpointName, SearchHistory entity)
     {
+        TypeAdapterConfig<SearchHistory, SearchHistoryModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Searchid);
+
         var model = _mapper.Map<SearchHistoryModel>(entity);
         model.Url = GetUrl(endpointName, new { id = entity.Searchid });
         return model;

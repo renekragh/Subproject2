@@ -10,11 +10,11 @@ using Movies.Domain.Entities;
 namespace Movies.Application.Features.Names.Handlers;
 
 public class NamesHandler : BaseHandler, INamesHandler
-{
+{    
     public NamesHandler(IUnitOfWork unitOfWork, 
-                         LinkGenerator generator, 
-                         IHttpContextAccessor httpContextAccessor, 
-                         IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+                        LinkGenerator generator, 
+                        IHttpContextAccessor httpContextAccessor, 
+                        IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
 
     public object GetNames(string endpointName, Paging pagingParams)
     {
@@ -58,6 +58,10 @@ public class NamesHandler : BaseHandler, INamesHandler
 
     private NameListModel CreateNameListModel(string endpointName, Name entity)
     {
+         TypeAdapterConfig<Name, NameListModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Nconst);
+
         var nameListModel = _mapper.Map<NameListModel>(entity);
         nameListModel.Url = GetUrl(endpointName, new { id = entity.Nconst });
         return nameListModel;

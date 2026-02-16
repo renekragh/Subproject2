@@ -1,0 +1,56 @@
+.modal {
+    text-align: center;
+}
+
+.starsContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.star {
+    cursor: pointer;
+    transition: all 0.1s linear;
+    
+}
+
+.star:hover {
+    transform: scale(1.1);
+}
+
+.starIcon {
+      font: italic 8px serif;
+      fill: red;
+      alignment-baseline: middle;
+    }
+
+.ratingbtn {
+text-decoration: none;
+}
+
+.ratingbtn .rating {
+    color: black;
+}
+
+.ratingbtn:hover {
+    transition-duration: 0.4s;
+    background-color: #e7e7e7;
+}
+
+.averagerating {
+
+} 
+
+.separator {
+    margin: 10px;
+}
+
+.error {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: red;
+    font-size: larger;
+    font-weight: 700;
+}

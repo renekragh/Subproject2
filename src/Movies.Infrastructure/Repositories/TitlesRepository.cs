@@ -11,6 +11,14 @@ public class TitlesRepository : GenericRepository<Title>, ITitlesRepository
 {
     public TitlesRepository(PostgresDbContext context) : base(context) { }
 
+    public IEnumerable<Title> GetTitlesWithRating(int page, int pageSize)
+    {
+        return _context.Set<Title>()
+            .Include(x => x.Ratings)
+            .Skip(page * pageSize)
+            .Take(pageSize);
+    }
+
     public Title GetTitleWithRelatedEntities(string id)
     {
         return _context.Set<Title>()

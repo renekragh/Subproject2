@@ -5,6 +5,7 @@ namespace Movies.Domain.Interfaces;
 
 public interface ITitlesRepository : IGenericRepository<Title>
 {
+    IEnumerable<Title> GetTitlesWithRating(int page, int pageSize);
     Title GetTitleWithRelatedEntities(string id);
     Title GetTitleWithRating(string id);
     bool CreateTitleRating(string titleId, int rate, int userId);

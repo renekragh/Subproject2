@@ -5,6 +5,8 @@ namespace Movies.Application.Features.Bookmarks.Models;
 public class BookmarkNameModel
 {
     public ICollection<Link> Links { get; set; } = new List<Link>();
+
+    public string Id { get; set; }
     
     public string Url { get; set; }
 

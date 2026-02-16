@@ -5,20 +5,20 @@ using Movies.Application.Common.Interfaces;
 
 namespace Movies.Application.Common.Behaviors;
 
-public class BaseHandler
+public abstract class BaseHandler
 {
     protected readonly IUnitOfWork _unitOfWork;
-    protected readonly LinkGenerator _generator;
     protected readonly IHttpContextAccessor _httpContextAccessor;
     protected readonly IMapper _mapper;
+    protected readonly LinkGenerator _generator;
 
-    public BaseHandler(IUnitOfWork unitOfWork, LinkGenerator generator, IHttpContextAccessor httpContextAccessor, IMapper mapper)
+    protected BaseHandler(IUnitOfWork unitOfWork, LinkGenerator generator, IHttpContextAccessor httpContextAccessor, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _generator = generator;
         _httpContextAccessor = httpContextAccessor;
         _mapper = mapper;
-    }
+    }  
 
     protected object CreatePaging<TEntity>(string searchQuery, IEnumerable<TEntity> items, int numberOfItems, Paging pagingParams)
     {
@@ -37,6 +37,7 @@ public class BaseHandler
     
         return new
         {
+            
             First = first,
             Prev = prev,
             Next = next,

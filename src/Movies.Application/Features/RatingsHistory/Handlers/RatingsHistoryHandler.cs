@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -13,12 +14,11 @@ public class RatingHistoryHandler : BaseHandler, IRatingHistoryHandler
 {
     private const string GetTitle = "GetTitle";
 
-       public RatingHistoryHandler(IUnitOfWork unitOfWork, 
-                          LinkGenerator generator, 
-                          IHttpContextAccessor httpContextAccessor, 
-                          IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
+    public RatingHistoryHandler(IUnitOfWork unitOfWork, 
+                                LinkGenerator generator, 
+                                IHttpContextAccessor httpContextAccessor, 
+                                IMapper mapper) : base(unitOfWork, generator, httpContextAccessor, mapper) {}
 
-    
     public object RetrieveRatingHistories(string endpointName, Paging pagingParams)
     {
          if (int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value, out int userId))
@@ -56,6 +56,10 @@ public class RatingHistoryHandler : BaseHandler, IRatingHistoryHandler
 
     private RatingHistoryModel CreateRatingHistoryModel(string endpointName, RatingHistory entity)
     {
+            TypeAdapterConfig<RatingHistory, RatingHistoryModel>
+            .NewConfig()
+            .Map(dest => dest.Id, src => src.Tconst);
+
         var ratingHistoryModel = _mapper.Map<RatingHistoryModel>(entity);
         ratingHistoryModel.Url = GetUrl(endpointName, new { id = entity.Tconst });
         return ratingHistoryModel;
