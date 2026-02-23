@@ -71,7 +71,6 @@ public class NamesHandler : BaseHandler, INamesHandler
     {
         TypeAdapterConfig<Name, NameModel>
             .NewConfig()
-            .Map(dest => dest.Id, src => src.Nconst)
             .Map(dest => dest.NameKnownForTitles, src => src.NameKnownForTitles)
             .Map(dest => dest.NamePrimaryProfessions, src => src.NamePrimaryProfessions)
             .Map(dest => dest.Principals, src => src.Principals)

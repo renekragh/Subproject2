@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react"
 const AuthContext = createContext();
 
 export default function AuthProvider({children}) {
-    const [user, setUser] = useState(localStorage.getItem('user') || '');
+    const [user, setUser] = useState(null);
     const [token, setToken] = useState(localStorage.getItem('token') || '');
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         return localStorage.getItem('isAuthenticated') === 'true'
@@ -20,11 +20,10 @@ export default function AuthProvider({children}) {
             });
             if (!response.ok) throw new Error(`Login failed'${response.status, response.statusText}`);
             const user = await response.json();
-            if (user === null) throw new Error('unexpected data');
-            setUser(user.username);
+            if (user === undefined) throw new Error('unexpected data');
+            setUser(user);
             setToken(user.token);
             setIsAuthenticated(true);
-            localStorage.setItem('user', user.username);
             localStorage.setItem('token', user.token);
             localStorage.setItem('isAuthenticated', true);
             return;
@@ -38,9 +37,9 @@ export default function AuthProvider({children}) {
         setToken('');
         setIsAuthenticated(false);
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('isAuthenticated');
     };
+
+    
 
     return <AuthContext.Provider value={{login, user, token, isAuthenticated, logout}}> 
             {children}

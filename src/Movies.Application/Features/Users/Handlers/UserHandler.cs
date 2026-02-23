@@ -34,7 +34,7 @@ public class UserHandler : IUserHandler
     }
 
     public bool CreateUser(CreateUserModel model)
-    {      
+    {
         if (string.IsNullOrEmpty(model.Password)) return false;
         var entity = _unitOfWork
                         .GetRepository<ImdbUser>()
@@ -75,7 +75,7 @@ public class UserHandler : IUserHandler
 
         var token = new JwtSecurityToken(
                 claims: claims,
-                expires: DateTime.Now.AddDays(365),
+                expires: DateTime.Now.AddHours(24),
                 signingCredentials: creds
         );
 

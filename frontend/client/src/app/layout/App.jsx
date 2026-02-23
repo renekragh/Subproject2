@@ -12,66 +12,21 @@ import RatingHistory from '../../features/users/RatingHistory';
 import SearchHistory from '../../features/users/SearchHistory';
 import NameBookmarks from '../../features/users/NameBookmarks';
 import NameDashboard from '../../features/names/dashboard/NameDashboard';
-import Register from '../../features/users/Register';
-import 'bootstrap/dist/css/bootstrap.css';
-import Account from '../../features/users/Account';
 
 export default function App() {
   const [movies, setMovies] = useState([]);
-  const [names, setNames] = useState([]);
   const [selectedMovie, setSelectedMovie] = useState();
-  const [selectedName, setSelectedName] = useState();
   const [refresh, setRefresh] = useState(false);
-  const [refreshAfterBookmarkedNames, setRefreshAfterBookmarkedNames] = useState(false);
   const idempotencyKeyRef = useRef(crypto.randomUUID());
-  const [bookmarkNames, setBookmarkNames] = useState([]);
-  const token = localStorage.getItem('token');
+ // let temp = localStorage.getItem('token');
+  const token = 'eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiSm9obiBEb2UiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjMyIiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiVXNlciIsImV4cCI6MTc3MTI3NzkyNH0.mzY7KMYQLIn1xG0HciD7a4VoNWN3rOxkjp2fM4ASrVzVl7dUrxFgRfYAuOk42_jnqhffqaZcFxPuEdllhK0aNw';
+  //const token = '';
   const [ratingHistory, setRatingHistory] = useState([]);
   const [bookmarks, setBookmarks] = useState([]);
-  const isAuthenticated = localStorage.getItem('isAuthenticated');
-
-   //**************************************** NAMES ************************************************************************ */ 
-
-    useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch('http://localhost:5193/api/names');
-        if (!res.ok) throw new Error("status = " + res.status);
-        const data = await res.json(); 
-        if (data.items === undefined) throw new Error('unexpected data');
-        setNames(data.items);
-        setRefreshAfterBookmarkedNames(false);
-      } catch (err) {
-          console.log("Error: " + err.message);
-        } 
-    }
-    load();
-  },[isAuthenticated, refreshAfterBookmarkedNames]);
-
-    useEffect(() => {
-    async function load() {
-      try {
-        const res = await fetch('http://localhost:5193/api/bookmark-names',
-                      {
-                        headers: 
-                        {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                      }
-                  );
-        if (!res.ok) throw new Error("status = " + res.status);
-        const data = await res.json(); 
-        if (data.items === undefined) throw new Error('unexpected data');
-        setBookmarkNames(data.items);
-      } catch (err) {
-          console.log("Error: " + err.message);
-        } 
-    }
-    load();
-  },[token, names]);
-
- //**************************************** TITLES ************************************************************************ */ 
+  //const [error, setError] = useState(null);
+ 
+  //const { isAuthenticated } = useAuth();
+  const isAuthenticated = true//useAuth();
 
   useEffect(() => {
     async function load() {
@@ -133,12 +88,9 @@ export default function App() {
     setSelectedMovie(undefined);
   }
 
-//******************************************** BOOKMARKS ************************************************************************* */ 
-
   async function ApiAddBookmark(movieId, note) {
-    const id = movieId.slice(0,1);
       try {
-        const response = await fetch(id === 't' ? `http://localhost:5193/api/titles/${movieId}/bookmarks` : `http://localhost:5193/api/names/${movieId}/bookmarks`, {
+        const response = await fetch(`http://localhost:5193/api/titles/${movieId}/bookmarks`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -151,7 +103,7 @@ export default function App() {
         const data = await response.json(); 
         if (data === undefined) throw new Error('unexpected data');
         idempotencyKeyRef.current = crypto.randomUUID();
-        id === 't' ? setRefresh(true) : setRefreshAfterBookmarkedNames(true);
+        setRefresh(true);
         return;
       } catch (err) {
           throw new Error(err);
@@ -159,9 +111,8 @@ export default function App() {
   }
 
   async function ApiUpdateBookmark(movieId, note) {
-    const id = movieId.slice(0,1);
       try {
-        const response = await fetch(id === 't' ? `http://localhost:5193/api/bookmark-titles/${movieId}` : `http://localhost:5193/api/bookmark-names/${movieId}`, {
+        const response = await fetch(`http://localhost:5193/api/bookmark-titles/${movieId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -172,7 +123,7 @@ export default function App() {
         if (response.status !== 200) throw new Error(`Updating bookmark failed: '${response.status + ' ' + response.statusText}`);
         const data = await response.json(); 
         if (data === undefined) throw new Error('unexpected data');
-        id === 't' ? setRefresh(true) : setRefreshAfterBookmarkedNames(true);
+        setRefresh(true);
         return;
       } catch (err) {
           throw new Error(err);
@@ -180,9 +131,8 @@ export default function App() {
   }
 
   async function ApiDeleteBookmark(movieId) {
-    const id = movieId.slice(0,1);
       try {
-        const response = await fetch(id === 't' ? `http://localhost:5193/api/bookmark-titles/${movieId}` : `http://localhost:5193/api/bookmark-names/${movieId}`, {
+        const response = await fetch(`http://localhost:5193/api/bookmark-titles/${movieId}`, {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -192,34 +142,15 @@ export default function App() {
         if (response.status !== 200) throw new Error(`Updating bookmark failed: '${response.status + ' ' + response.statusText}`);
         const data = await response.json(); 
         if (data === undefined) throw new Error('unexpected data');
-        id === 't' ? setRefresh(true) : setRefreshAfterBookmarkedNames(true);
+        setRefresh(true);
         return;
       } catch (err) {
           throw new Error(err);
         } 
   }
 
-  async function ApiDeleteAllBookmarks(id) {
-        try {
-            const response = await fetch(id === 't' ? 'http://localhost:5193/api/bookmark-titles' : 'http://localhost:5193/api/bookmark-names', {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-            });
-            if (response.status !== 200) throw new Error(`Deleting all title bookmarks failed: '${response.status + ' ' + response.statusText}`);
-            const data = await response.json(); 
-            if (data === undefined) throw new Error('unexpected data');
-            id === 't' ? setRefresh(true) : setRefreshAfterBookmarkedNames(true);
-        } catch (err) {
-          console.log(err);
-        } 
-    }
-
   const handleBookmark = (movieId, note) => {
-    const id = movieId.slice(0,1);
-    const index = id === 't' ? bookmarks.findIndex(x => x.id === movieId) : bookmarkNames.findIndex(x => x.id === movieId);
+    const index = bookmarks.findIndex(x => x.id === movieId);
     index > -1 ? UpdateBookmark() : AddBookmark();
 
     async function AddBookmark() {
@@ -246,30 +177,6 @@ export default function App() {
         console.log("Error: " + err.message);
       }   
   }
-
-  const handleDeleteAllTitleBookmarks = async () => {
-    try {
-        await ApiDeleteAllBookmarks('t');
-    } catch (err) {
-        console.log("Error: " + err.message);
-      }   
-  }
-
-  const handleDeleteAllNameBookmarks = async () => {
-    try {
-        await ApiDeleteAllBookmarks('n');
-    } catch (err) {
-        console.log("Error: " + err.message);
-      }   
-  }
-
-  const handleSelectName = async (url) => {
-    await fetch(`${url}`)
-    .then(response => response.json())
-    .then(data => setSelectedName(data))
-  }
-
-//************************************************* RATINGS ******************************************************************** */ 
 
   async function ApiAddRate(movieId, rate) {
       try {
@@ -332,14 +239,6 @@ export default function App() {
         } 
   }
 
-  const handleDeleteAllRatings = async () => {
-    try {
-        //await ApiDeleteAllRatings(); / not implemented yet
-    } catch (err) {
-        console.log("Error: " + err.message);
-      }   
-  }
-
   const handleRate = (movieId, rate) => {
 
     const index = ratingHistory.findIndex(x => x.id === movieId);
@@ -371,70 +270,80 @@ export default function App() {
       } 
   };  
 
+/*
+  const handleRate = (movieId, rate) => {
+
+    const index = ratings.findIndex(x => x.id === movieId) 
+    index > -1 ? UpdateRate(index) : AddRate();
+
+    async function AddRate() {
+      try {
+        await ApiAddRate(movieId, rate);
+        setRatings(// Replace the state
+          [ // with a new array
+            ...ratings, // that contains all the old items
+            { id: movieId, rating: rate } // and one new item at the end
+          ]
+        );
+      } catch (err) {
+        console.log("Error: " + err.message);
+        } 
+    };
+
+    async function UpdateRate(index) {
+      try {
+        await ApiUpdateRate(movieId, rate);
+        const updatedRate = ratings.map((v, i) => {
+          if (i === index) return { id: movieId, rating: rate } 
+          return v;
+        });
+        setRatings(updatedRate);
+      } catch (err) {
+          console.log("Error: " + err.message);
+        } 
+    };
+  };
+ 
+
+  const handleDeleteRate = async (movieId) => {
+    try {
+      await ApiDeleteRate(movieId);
+      setRatings(
+        ratings.filter(x => x.id !== movieId)
+      );
+    } catch (err) {
+          console.log("Error: " + err.message);
+      } 
+  }; 
+*/ 
+
+    //console.log('App --> ratings.length: '+ratings.length)
+  
   return (
         <AuthProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Home />} />
-                <Route path='/users/login' element={<Login />} />
-                <Route path='/users/register' element={<Register />} />
-                <Route path='/search' element={
-                  <Search
-                    bookmarks={bookmarks}
-                    handleBookmark={handleBookmark}
-                    handleDeleteBookmark={handleDeleteBookmark}
-                    ratingHistory={ratingHistory}
-                    handleRate={handleRate}
-                    handleDeleteRate={handleDeleteRate}
-                  />
-                } 
-                />
+                <Route path='/login' element={<Login />} />
+                <Route path='/search' element={<Search />} />
                 <Route element={<ProtectedRoute />}>
-                  <Route path='/users/account' element={<Account />} />
                   <Route
                     path="/users/name-bookmarks"
                     element={
-                      <NameBookmarks
-                        bookmarkNames={bookmarkNames}
-                        handleBookmark={handleBookmark}
-                        handleDeleteBookmark={handleDeleteBookmark}
-                        handleDeleteAllNameBookmarks={handleDeleteAllNameBookmarks}
-                        selectName={handleSelectName}
-                        selectedName={selectedName}
-                      />
+                      <NameBookmarks/>
                     }
                   />
                   <Route
                     path="/users/title-bookmarks"
                     element={
-                      <TitleBookmarks 
-                        bookmarks={bookmarks}
-                        handleBookmark={handleBookmark}
-                        handleDeleteBookmark={handleDeleteBookmark}
-                        handleDeleteAllTitleBookmarks={handleDeleteAllTitleBookmarks}
-                        ratingHistory={ratingHistory}
-                        handleRate={handleRate}
-                        handleDeleteRate={handleDeleteRate}
-                        selectMovie={handleSelectMovie}
-                        selectedMovie={selectedMovie}
-                      />
+                      <TitleBookmarks />
                     }
                   />
                   <Route
                     path="/users/rating-history"
                     element={
-                      <RatingHistory 
-                        ratingHistory={ratingHistory}
-                        handleRate={handleRate}
-                        handleDeleteRate={handleDeleteRate}
-                        bookmarks={bookmarks}
-                        handleBookmark={handleBookmark}
-                        handleDeleteBookmark={handleDeleteBookmark}
-                        handleDeleteAllRatings={handleDeleteAllRatings}
-                        selectMovie={handleSelectMovie}
-                        selectedMovie={selectedMovie}
-                      />
+                      <RatingHistory />
                     }
                   />
                   <Route
@@ -446,12 +355,7 @@ export default function App() {
                   <Route
                     path="/names"
                     element={
-                      <NameDashboard
-                        names={names} 
-                        bookmarks={bookmarkNames}
-                        handleBookmark={handleBookmark}
-                        handleDeleteBookmark={handleDeleteBookmark}
-                      />
+                      <NameDashboard />
                     }
                   />
                   <Route

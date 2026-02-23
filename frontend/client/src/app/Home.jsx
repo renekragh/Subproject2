@@ -5,8 +5,8 @@ export default function Home() {
   return (
     <>
     <div>Home</div>
-    <h1>Names here...</h1>
-    <h1>Titles here...</h1>
+    
+    <NameDashboard />
     </>
   )
 }

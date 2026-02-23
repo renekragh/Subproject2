@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import { useAuth } from '../common/AuthProvider';
-import { useNavigate, useLocation, replace } from "react-router-dom";
+import { useNavigate, useLocation, replace } from "react-router";
 import './login.css';
 
 const ICON = <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" className="bi bi-person-fill-lock" viewBox="0 0 16 16">
@@ -24,7 +24,7 @@ export default function Login() {
     setLoading(true);
     try {
           await login({username, password});
-          navigate(location.state !== null ? location.state.from : '/', replace);
+          navigate(location.state.from, replace);
     } catch(err) {
         setError(err.message || 'An error occurred during login');
     } finally {
