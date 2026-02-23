@@ -8,7 +8,6 @@ import Offcanvas from 'react-bootstrap/Offcanvas';
 // 3) after update method on page refresh Update bookmark button is active (until manuel page refresh)
 
 export default function Bookmark({ ...props }) {
-  console.log('props.name '+JSON.stringify(props.movie.id))
   const bookmark = props.bookmarks.find(x => x.id === props.movie.id);
   const inputRef = useRef('');
   const [note, setNote] = useState('');
@@ -18,6 +17,7 @@ export default function Bookmark({ ...props }) {
   const [hideClearBtn, setHideClearBtn] = useState(true);
   const [hideUpdateBtn, setHideUpdateBtn] = useState(true);
   const isBookmarked = props.bookmarks.map(x => x.id).includes(props.movie.id);
+ 
   const PLUS_ICON = <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-plus" viewBox="0 0 16 16">
                       <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
                     </svg>

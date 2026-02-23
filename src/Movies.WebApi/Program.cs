@@ -16,6 +16,7 @@ using Movies.Infrastructure.DataContext;
 using Movies.Infrastructure.Repositories;
 using Movies.Application.Features.SearchesHistory.Handlers;
 using Movies.Application.Features.Names.Handlers;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 

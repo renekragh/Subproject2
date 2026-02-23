@@ -1,0 +1,22 @@
+.deleteAllBtn {
+  display: flex; /* Enables CSS flexbox */
+  justify-content: center; /* Centers horizontally */
+  align-items: center; /* Centers vertically */
+ /* height: 100vh; /* Full height to demonstrate vertical centering */
+}
+
+button {
+  margin: 2em
+}
+
+.alert {
+  display: flex; /* Enables CSS flexbox */
+  justify-content: center; /* Centers horizontally */
+  align-items: center; /* Centers vertically */
+}
+
+.emptyPage {
+  display: flex; /* Enables CSS flexbox */
+  justify-content: center; /* Centers horizontally */
+  align-items: center; /* Centers vertically */
+}

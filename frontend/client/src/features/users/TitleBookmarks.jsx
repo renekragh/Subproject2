@@ -1,55 +1,20 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../common/AuthProvider';
 import TitleList from '../titles/dashboard/TitleList';
+import Button from 'react-bootstrap/Button';
+import './titlebookmarks.css' 
+import Alert from 'react-bootstrap/Alert';
+import { Link } from 'react-router-dom';
+import TitleDetail from '../titles/details/TitleDetail';
  
-
 export default function TitleBookmarks(props) {
-    const { token } = useAuth();
-    const [bookmarks, setBookmarks] = useState([]);
-    const [ratingHistory, setRatingHistory] = useState([]);
     const [movies, setMovies] = useState([]);
+    const [show, setShow] = useState(false);
     
     useEffect(() => {
         async function load() {
             try {
-                const response = await Promise.all([
-                    fetch('http://localhost:5193/api/ratings-history', 
-                        {
-                            headers: 
-                            {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            }
-                        }
-                    ),
-                    fetch('http://localhost:5193/api/bookmark-titles', 
-                        {
-                            headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                            }
-                        }
-                    )                
-                ]);
-            const responseStatus = response.find(x => !x.ok);
-            if (responseStatus !== undefined) throw new Error(responseStatus.url + ' ' + responseStatus.status + ' ' + responseStatus.statusText);
-            const [data0, data1] = await Promise.all(response.map(async (x) => await x.json()));
-            if ([data0, data1].length !== response.length) throw new Error('unexpected data');
-            setRatingHistory(data0.items);
-            setBookmarks(data1.items);
-            return;
-            } catch (error) {
-                throw new Error(error);
-            }        
-        }
-        load();
-    },[token]);
-
-    useEffect(() => {
-        async function load() {
-            try {
                 const movies = await Promise.all(
-                    bookmarks.map(x =>
+                    props.bookmarks.map(x =>
                         fetch(`http://localhost:5193/api/titles/${x.id}`,
                             {
                                 headers: 
@@ -67,21 +32,64 @@ export default function TitleBookmarks(props) {
             }        
         }
         load();
-    },[bookmarks]);
+    },[props.bookmarks]);
+
+    const handleDeleteAllBookmarks = async () => {
+        props.handleDeleteAllTitleBookmarks();
+        setShow(false);
+    }
+
+    if (show) {
+        return <Alert className='alert' variant='warning'>
+                    Sure you wanna delete all title bookmarks?
+                    &nbsp;
+                    <Alert.Link onClick={handleDeleteAllBookmarks} >Yes</Alert.Link> 
+                     &nbsp; &nbsp; &nbsp;
+                    <Alert.Link onClick={() => setShow(false)} href="">No</Alert.Link>
+                </Alert>
+    }
 
     return (
         <>
-            <h1>Title bookmarks</h1>
-             <TitleList 
-                movies={movies}
-                selectMovie={props.selectMovie}
-                handleRate={props.handleRate}
-                handleDeleteRate={props.handleDeleteRate}
-                ratingHistory={ratingHistory}
-                bookmarks={bookmarks}
-                handleBookmark={props.handleBookmark}
-                handleDeleteBookmark={props.handleDeleteBookmark}
-            />  
+            {
+                !props.selectedMovie && 
+                <>
+                    <h1>Title bookmarks</h1>
+                    <TitleList 
+                        movies={movies}
+                        selectMovie={props.selectMovie}
+                        handleRate={props.handleRate}
+                        handleDeleteRate={props.handleDeleteRate}
+                        ratingHistory={props.ratingHistory}
+                        bookmarks={props.bookmarks}
+                        handleBookmark={props.handleBookmark}
+                        handleDeleteBookmark={props.handleDeleteBookmark}
+                    />
+                </>
+            }
+            {
+                props.selectedMovie && 
+                    <TitleDetail 
+                        movie={props.selectedMovie}
+                        cancelSelectMovie={props.cancelSelectMovie}
+                />
+            }
+             
+            {
+                props.bookmarks.length > 0 ? 
+                <div className='deleteAllBtn'>
+                    <Button onClick={() => setShow(true)} variant="warning">Delete all title bookmarks</Button>  
+                </div>  
+                :
+                <>
+                    <div className='emptyPage'>
+                        <h2>You don't have any bookmarked titles yet</h2>
+                    </div>
+                    <div className='emptyPage'>
+                        <h3><Link to="/titles">Browse Titles</Link></h3>
+                    </div>
+                </>
+            }
         </>
     )
 }

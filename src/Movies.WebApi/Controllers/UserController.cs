@@ -20,7 +20,7 @@ public class UserController : ControllerBase
     public IActionResult CreateUser(CreateUserModel model)
     {
         var isUserCreated = _usersHandler.CreateUser(model);
-        if (isUserCreated) return Ok();
+        if (isUserCreated) return Created();
         return BadRequest();
     }
 

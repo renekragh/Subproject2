@@ -7,7 +7,7 @@ import Button from 'react-bootstrap/Button';
 import {useAuth} from '../../features/common/AuthProvider';
 
 export default function Navigation() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <Navbar expand="lg" className="bg-body-tertiary" bg="dark" data-bs-theme="dark" sticky="top">
@@ -21,7 +21,8 @@ export default function Navigation() {
             <Nav.Link href="/names">Names</Nav.Link>
             {isAuthenticated &&
               <NavDropdown title="User" id="basic-nav-dropdown">
-                <NavDropdown.Item href="/users/name-bookmarks">Name bookmarks </NavDropdown.Item>
+                <NavDropdown.Item href="/users/account">Account</NavDropdown.Item>
+                <NavDropdown.Item href="/users/name-bookmarks">Name bookmarks</NavDropdown.Item>
                 <NavDropdown.Item href="/users/rating-history">Rating history</NavDropdown.Item>
                 <NavDropdown.Item href="/users/title-bookmarks">Title bookmarks</NavDropdown.Item>
                 <NavDropdown.Item href="/users/search-history">Search history</NavDropdown.Item>
@@ -29,15 +30,24 @@ export default function Navigation() {
             }
             <Navbar.Toggle />
             {isAuthenticated &&
+              <>
+              <Navbar.Text>&nbsp; &nbsp; &nbsp;</Navbar.Text>
               <Navbar.Text>
                 Signed in as: <a href="#login">{user}</a>
               </Navbar.Text>
+              <Navbar.Text>&nbsp; &nbsp; &nbsp;</Navbar.Text>
+              <Navbar.Text>
+                <a href="/" onClick={() => logout()}>Logout</a>
+              </Navbar.Text>
+              <Navbar.Text>&nbsp; &nbsp; &nbsp;</Navbar.Text>
+              </>
              }
               {!isAuthenticated &&
               <Navbar.Text>
-                Login <a href="/users/login">Login</a> or <a href="/users/account">create account</a>
+                Login <a href="/users/login">Login</a> or <a href="/users/register">register</a>
               </Navbar.Text>
              }
+            <Nav.Link href="/search">Search</Nav.Link>
           </Nav>
           <Form className="d-flex">
             <Form.Control

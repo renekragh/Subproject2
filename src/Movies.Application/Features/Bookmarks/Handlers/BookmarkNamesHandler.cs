@@ -33,7 +33,7 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
                                         .UsersRepository
                                         .GetUserWithNameBookmarks(userId)
                                         .UserBookmarkNames
-                                        .FirstOrDefault(x => x.Nconst == id);
+                                        .FirstOrDefault(x => x.Nconst.Trim() == id);
                                       
                 var badRequest = new ObjectResult(new 
                                                     { 
@@ -57,7 +57,7 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
             if (_unitOfWork.Save()) {
                 var newEntity = _unitOfWork
                                     .GetRepository<UserBookmarkName>()
-                                    .RetrieveEntity(x => x.Nconst == id);
+                                    .RetrieveEntity(x => x.Nconst.Trim() == id);
                 var created = new ObjectResult(new { endpointName, item = CreateBookmarkNameModel(endpointName, newEntity) });
                 created.StatusCode = 201;
                 return created;
@@ -95,7 +95,7 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
                                  .UsersRepository
                                  .GetUserWithNameBookmarks(userId)
                                  .UserBookmarkNames
-                                 .FirstOrDefault(x => x.Nconst == nameId);
+                                 .FirstOrDefault(x => x.Nconst.Trim() == nameId);
 
             if (nameBookmark == null) return null;
             var nameBookmarkModel = CreateBookmarkNameModel(endpointName, nameBookmark);
@@ -113,7 +113,7 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
                         .GetUserWithNameBookmarks(userId);
             user
                 .UserBookmarkNames
-                .FirstOrDefault(x => x.Nconst == nameId)
+                .FirstOrDefault(x => x.Nconst.Trim() == nameId)
                 .Note = note;               
 
             _unitOfWork
@@ -126,7 +126,7 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
                                                 .UsersRepository
                                                 .GetUserWithNameBookmarks(userId)
                                                 .UserBookmarkNames
-                                                .FirstOrDefault(x => x.Nconst == nameId);
+                                                .FirstOrDefault(x => x.Nconst.Trim() == nameId);
 
                 var updated = new ObjectResult(new { endpointName, item = CreateBookmarkNameModel(endpointName, updatedBookmarkedName) });
                 updated.StatusCode = 200;
@@ -148,7 +148,7 @@ public class BookmarkNamesHandler : BaseHandler, IBookmarkNamesHandler
 
             var bookmarkedNameByUser = user
                                         .UserBookmarkNames
-                                        .FirstOrDefault(x => x.Nconst == nameId);
+                                        .FirstOrDefault(x => x.Nconst.Trim() == nameId);
 
             if (bookmarkedNameByUser != null)
             {

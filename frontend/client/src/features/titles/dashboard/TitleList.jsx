@@ -14,6 +14,7 @@ export default function TitleList(props) {
               <TitleCard 
                 movie={movie} 
                 selectMovie={props.selectMovie}
+                selectedMovie={props.selectedMovie}
                 handleRate={props.handleRate}
                 handleDeleteRate={props.handleDeleteRate}
                 ratingHistory={props.ratingHistory}

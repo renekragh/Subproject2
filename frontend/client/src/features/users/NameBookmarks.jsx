@@ -1,41 +1,19 @@
 import { useEffect, useState } from 'react'
-import { useAuth } from '../common/AuthProvider';
 import NameList from '../names/dashboard/NameList';
-import NameDashboard from '../names/dashboard/NameDashboard';
+import Alert from 'react-bootstrap/Alert';
+import { Link } from 'react-router-dom';
+import Button from 'react-bootstrap/Button';
+import NameDetail from '../names/NameDetail';
 
 export default function NameBookmarks(props) {
-    const { token } = useAuth();
-    const [bookmarks, setBookmarks] = useState([]);
     const [names, setNames] = useState([]);
-    
-    useEffect(() => {
-        async function load() {
-            try {
-                const res = await fetch('http://localhost:5193/api/bookmark-names',
-                    {
-                        headers: 
-                        {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    }
-                );
-                if (!res.ok) throw new Error("status = " + res.status);
-                const data = await res.json(); 
-                if (data.items === undefined) throw new Error('unexpected data');
-                setBookmarks(data.items);
-            } catch (err) {
-                console.log("Error: " + err.message);
-            } 
-        }
-        load();
-    },[token]);
+    const [show, setShow] = useState(false);
 
     useEffect(() => {
         async function load() {
             try {
                 const names = await Promise.all(
-                    bookmarks.map(x =>
+                    props.bookmarkNames.map(x =>
                         fetch(`http://localhost:5193/api/names/${x.id}`,
                             {
                                 headers: 
@@ -53,18 +31,60 @@ export default function NameBookmarks(props) {
             }        
         }
         load();
-    },[bookmarks]);
+    },[props.bookmarkNames]);
+
+    const handleDeleteAllBookmarks = async () => {
+        props.handleDeleteAllNameBookmarks();
+        setShow(false);
+    }
+
+    if (show) {
+        return <Alert className='alert' variant='warning'>
+                    Sure you wanna delete all title bookmarks?
+                    &nbsp;
+                    <Alert.Link onClick={handleDeleteAllBookmarks} >Yes</Alert.Link> 
+                     &nbsp; &nbsp; &nbsp;
+                    <Alert.Link onClick={() => setShow(false)} href="">No</Alert.Link>
+                </Alert>
+    }
 
     return (
         <>
-            <h1>Name bookmarks</h1>
-             <NameDashboard 
-                names={names}
-                selectName={props.selectName}
-                bookmarks={bookmarks}
-                handleBookmark={props.handleBookmark}
-                handleDeleteBookmark={props.handleDeleteBookmark}
-            />  
+             {
+                !props.selectedName && 
+                <>
+                    <h1>Name bookmarks</h1>
+                    <NameList
+                        names={names}
+                        selectName={props.selectName}
+                        bookmarks={props.bookmarkNames}
+                        handleBookmark={props.handleBookmark}
+                        handleDeleteBookmark={props.handleDeleteBookmark}
+                    />  
+                </>
+            }
+
+            {props.selectedName && 
+                <NameDetail 
+                    name={props.selectedName}
+                />
+            }
+
+            {
+                props.bookmarkNames.length > 0 ? 
+                <div className='deleteAllBtn'>
+                    <Button onClick={() => setShow(true)} variant="warning">Delete all title bookmarks</Button>  
+                </div>  
+                :
+                <>
+                    <div className='emptyPage'>
+                        <h2>You don't have any bookmarked names yet</h2>
+                    </div>
+                    <div className='emptyPage'>
+                        <h3><Link to="/names">Browse Names</Link></h3>
+                    </div>
+                </>
+            }
         </>
     )
 }

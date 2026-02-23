@@ -1,5 +1,6 @@
 import Modal from 'react-bootstrap/Modal';
 import Rate from '../rating/Rate';
+import 'bootstrap/dist/css/bootstrap.css';
 
 export default function Popup(props) {
   //console.log('Popup --> props.selectedRatings.length: '+props.selectedRatings.length)  
